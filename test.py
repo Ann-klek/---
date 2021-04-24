@@ -101,34 +101,36 @@ def handle_dialog(req, res):
             brosok_kybika(req, res)
         elif 'Ничего не понял, но очень интересно.' in req['request']['original_utterance']:
             randomna_figny(req, res)
+        elif 'H6QT08NIG' in req['request']['original_utterance']:
+            con = sqlite3.connect('DB_Ded_Makar.db')
+            cur = con.cursor()
+            result = cur.execute("""SELECT anecdot FROM tablisa_so_vsem""").fetchall()
+            anecdot1 = result[randint(0, len(result) - 1)][0]
+            while anecdot1 == None:
+                anecdot1 = result[randint(0, len(result) - 1)][0]
+            res['response']['text'] = anecdot1
+            knopki(req, res)
+        elif 'SOVET_POGOGDA' in req['request']['original_utterance']:
+            con = sqlite3.connect('DB_Ded_Makar.db')
+            cur = con.cursor()
+            result = cur.execute("""SELECT sovet FROM tablisa_so_vsem""").fetchall()
+            sovet1 = result[randint(0, len(result) - 1)][0]
+            while sovet1 == None:
+                sovet1 = result[randint(0, len(result) - 1)][0]
+            res['response']['text'] = sovet1
+            knopki(req, res)
+        elif 'ABOBA' in req['request']['original_utterance']:
+            res['response']['text'] = 'ABOBA'
+            knopki(req, res)
+        elif 'Создатели и творцы' in req['request']['original_utterance']:
+            res['response']['text'] = 'Гении'
+            knopki(req, res)
+        elif 'Яндекс.Лицей' in req['request']['original_utterance']:
+            res['response']['text'] = 'ПРЕКРАСНОЕ МЕСТО ДЛЯ РАЗВИТИЯ УМА И МЫСЛИТЕЛЬНЫХ ПРОЦЕССОВ'
+            knopki(req, res)
         else:
             res['response']['text'] = f'Блатной если ты не забыл у тебя {TOKENS}☸. Трать их с умом или вали отсюда.'
-            res['response']['buttons'] = [
-                {
-                    'title': 'Посоветуй фильм, Макарыч : 30☸',
-                    'hide': True
-                },
-                {
-                    'title': 'Дай мне совет, отче: 20☸',
-                    'hide': True
-                },
-                {
-                    'title': 'Хочу посмеяться: 10☸',
-                    'hide': True
-                },
-                {
-                    'title': 'Заработать Макар-токенов ☸.',
-                    'hide': True
-                },
-                {
-                    'title': 'Рандомная фигня.',
-                    'hide': True
-                },
-                {
-                    'title': 'Макарыч, я пошел, пока!',
-                    'hide': True
-                }
-            ]
+            knopki(req, res)
 
             if 'Посоветуй фильм, Макарыч : 30☸' in req['request']['original_utterance']:
                 film(req, res)
@@ -330,6 +332,35 @@ def randomna_figny(req, res):
 def prochanie(req, res):
     res['response']['end_session'] = True
     res['response']['text'] = 'Давай фраер, удачи тебе.'
+
+
+def knopki(req, res):
+    res['response']['buttons'] = [
+        {
+            'title': 'Посоветуй фильм, Макарыч : 30☸',
+            'hide': True
+        },
+        {
+            'title': 'Дай мне совет, отче: 20☸',
+            'hide': True
+        },
+        {
+            'title': 'Хочу посмеяться: 10☸',
+            'hide': True
+        },
+        {
+            'title': 'Заработать Макар-токенов ☸.',
+            'hide': True
+        },
+        {
+            'title': 'Рандомная фигня.',
+            'hide': True
+        },
+        {
+            'title': 'Макарыч, я пошел, пока!',
+            'hide': True
+        }
+    ]
 
 
 if __name__ == '__main__':
