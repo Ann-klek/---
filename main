@@ -3,6 +3,7 @@ from random import randint
 import sqlite3
 
 from flask import Flask, request
+
 from flask_ngrok import run_with_ngrok
 
 app = Flask(__name__)
@@ -28,7 +29,6 @@ def get_alice_request():
 
 
 def handle_dialog(req, res):
-    user_id = req['session']['user_id']
     global privetctvia, TOKENS, ID_USERS
 
     if req['session']['new']:
@@ -36,7 +36,6 @@ def handle_dialog(req, res):
         cur = con.cursor()
         result = cur.execute("""SELECT id, tokens FROM users""").fetchall()
         for i in result:
-            print(req['session']['user_id'], i[1])
             if req['session']['user_id'] == i[0]:
                 TOKENS = i[1]
                 ID_USERS = i[0]
@@ -44,15 +43,15 @@ def handle_dialog(req, res):
                 res['response']['text'] = 'На связи Макарыч!'
                 res['response']['buttons'] = [
                     {
-                        'title': privetctvia.pop(randint(0, len(privetctvia)) - 1),
+                        'title': privetctvia[0],
                         'hide': True
                     },
                     {
-                        'title': privetctvia.pop(randint(0, len(privetctvia) - 1)),
+                        'title': privetctvia[1],
                         'hide': True
                     },
                     {
-                        'title': privetctvia.pop(randint(0, len(privetctvia) - 1)),
+                        'title': privetctvia[2],
                         'hide': True
                     }
                 ]
@@ -64,7 +63,11 @@ def handle_dialog(req, res):
                             (req['session']['user_id'], 1000)).fetchall()
                 con.commit()
                 con.close()
-                res['response']['text'] = 'О свежее мясо курто!'
+                res['response']['text'] = 'О свежее мясо круто! Я Макарыч, помогу скоротать твои ' \
+                                          'скучные одинокие вечера. За всё в этой жизни надо платить и я ' \
+                                          'просто так ничего не делаю. Возможность зарабатывать тугрики я тебе дам,' \
+                                          'так что не боись. А ещё одно, так как я очень добрый то на первоначальные ' \
+                                          'расходы дам тебе 1000☸. Все давай плыви в это море отсылок.'
                 res['response']['buttons'] = [
                     {
                         'title': privetctvia.pop(randint(0, len(privetctvia)) - 1),
@@ -98,40 +101,23 @@ def handle_dialog(req, res):
             brosok_kybika(req, res)
         elif 'Ничего не понял, но очень интересно.' in req['request']['original_utterance']:
             randomna_figny(req, res)
+        elif 'хочу будущее' in req['request']['original_utterance']:
+            predskaz(req, res)
+        elif 'Макарыч, давай еще цитат' in req['request']['original_utterance']:
+            zitata(req, res)
+        elif 'Макарыч, давай еще лайфхаков' in req['request']['original_utterance']:
+            lifehak(req, res)
+        elif 'Макарыч, какой сегодня еще праздник?' in req['request']['original_utterance']:
+            prazdnik(req, res)
         else:
             res['response']['text'] = f'Блатной если ты не забыл у тебя {TOKENS}☸. Трать их с умом или вали отсюда.'
-            res['response']['buttons'] = [
-                {
-                    'title': 'Посоветуй фильм, Макарыч : 30☸',
-                    'hide': True
-                },
-                {
-                    'title': 'Дай мне совет, отче: 20☸',
-                    'hide': True
-                },
-                {
-                    'title': 'Хочу посмеятся: 10☸',
-                    'hide': True
-                },
-                {
-                    'title': 'Заработать Макар-токенов ☸.',
-                    'hide': True
-                },
-                {
-                    'title': 'Рандомная фигня.',
-                    'hide': True
-                },
-                {
-                    'title': 'Макарыч, я пошел, пока!',
-                    'hide': True
-                }
-            ]
+            knopki(req, res)
 
             if 'Посоветуй фильм, Макарыч : 30☸' in req['request']['original_utterance']:
                 film(req, res)
             elif 'Дай мне совет, отче: 20☸' in req['request']['original_utterance']:
                 sovet(req, res)
-            elif 'Хочу посмеятся: 10☸' in req['request']['original_utterance']:
+            elif 'Хочу посмеяться: 10☸' in req['request']['original_utterance']:
                 anecdot(req, res)
             elif 'Макарыч, я пошел, пока!' in req['request']['original_utterance']:
                 prochanie(req, res)
@@ -139,6 +125,14 @@ def handle_dialog(req, res):
                 zarabotok(req, res)
             elif 'Рандомная фигня.' in req['request']['original_utterance']:
                 randomna_figny(req, res)
+            elif 'Предскажи будущее: 15☸' in req['request']['original_utterance']:
+                predskaz(req, res)
+            elif 'Макарыч, процитируй классика: 15☸' in req['request']['original_utterance']:
+                zitata(req, res)
+            elif 'Макарыч, поделись лайфхаком: 15☸' in req['request']['original_utterance']:
+                lifehak(req, res)
+            elif 'Макарыч, какой сегодня праздник?: 15☸' in req['request']['original_utterance']:
+                prazdnik(req, res)
 
 
 def film(req, res):
@@ -148,11 +142,15 @@ def film(req, res):
         cur = con.cursor()
         cur.execute(f"""UPDATE users SET tokens=? WHERE id=?""", (TOKENS, ID_USERS)).fetchall()
         TOKENS -= 30
-        result = cur.execute("""SELECT film FROM tablisa_so_vsem""").fetchall()
-        filmes = result[randint(0, len(result) - 1)][0]
-        while filmes == None:
-            filmes = result[randint(0, len(result) - 1)][0]
-        res['response']['text'] = filmes
+        result = cur.execute("""SELECT film, fotka FROM tablisa_so_vsem""").fetchall()
+        filmes = result[randint(0, len(result) - 1)]
+        while filmes[0] == None:
+            filmes = result[randint(0, len(result) - 1)]
+        res['response']['card'] = {}
+        res['response']['card']['type'] = 'BigImage'
+        res['response']['card']['description'] = filmes[0]
+        res['response']['card']['image_id'] = filmes[1]
+        res['response']['text'] = '1'
         res['response']['buttons'] = [
             {
                 'title': 'Есть ещё что-нибудь на примете?',
@@ -245,7 +243,7 @@ def anecdot(req, res):
         con.commit()
         con.close()
     else:
-        res['response']['text'] = 'Даже мои чутки чего-то да стоят.'
+        res['response']['text'] = 'Даже мои шутки чего-то да стоят.'
         res['response']['buttons'] = [
             {
                 'title': 'Заработать Макар-токенов ☸.',
@@ -278,7 +276,7 @@ def brosok_kybika(req, res):
     if ded > moe:
         res['response']['text'] = f'Ты зафаршмачился у меня {ded}, а у тебя {moe}'
     else:
-        res['response']['text'] = f'Твоя взяла, у меня {ded}, а у тебя {moe}, но особо не радуйся фраей.'
+        res['response']['text'] = f'Твоя взяла, у меня {ded}, а у тебя {moe}, но особо не радуйся фраер.'
         con = sqlite3.connect('DB_Ded_Makar.db')
         cur = con.cursor()
         result = cur.execute("""SELECT sovet FROM tablisa_so_vsem""").fetchall()
@@ -320,9 +318,211 @@ def randomna_figny(req, res):
     con.close()
 
 
+def predskaz(req, res):
+    global TOKENS
+    if TOKENS >= 15:
+        con = sqlite3.connect('DB_Ded_Makar.db')
+        cur = con.cursor()
+        result = cur.execute("""SELECT predskaz FROM tablisa_so_vsem""").fetchall()
+        TOKENS -= 15
+        cur.execute(f"""UPDATE users SET tokens=? WHERE id=?""", (TOKENS, ID_USERS)).fetchall()
+        predskazik = result[randint(0, len(result) - 1)][0]
+        while predskazik == None:
+            predskazik = result[randint(0, len(result) - 1)][0]
+        res['response']['text'] = predskazik
+        res['response']['buttons'] = [
+            {
+                'title': 'хочу будущее',
+                'hide': True
+            },
+            {
+                'title': 'Хватит предказывать.',
+                'hide': True
+            }
+        ]
+        con.commit()
+        con.close()
+    else:
+        res['response']['text'] = 'Мои предсказания точнее чем у Ванги и стоят своих денег'
+        res['response']['buttons'] = [
+            {
+                'title': 'Заработать Макар-токенов ☸.',
+                'hide': True
+            },
+            {
+                'title': 'Макарыч, я пошел, пока!',
+                'hide': True
+            }
+        ]
+        return
+
+
+def zitata(req, res):
+    global TOKENS
+    if TOKENS >= 15:
+        con = sqlite3.connect('DB_Ded_Makar.db')
+        cur = con.cursor()
+        result = cur.execute("""SELECT zitata FROM tablisa_so_vsem""").fetchall()
+        TOKENS -= 15
+        cur.execute(f"""UPDATE users SET tokens=? WHERE id=?""", (TOKENS, ID_USERS)).fetchall()
+        zitatka = result[randint(0, len(result) - 1)][0]
+        while zitatka == None:
+            zitatka = result[randint(0, len(result) - 1)][0]
+        res['response']['text'] = zitatka
+        res['response']['buttons'] = [
+            {
+                'title': 'Макарыч, давай еще цитат',
+                'hide': True
+            },
+            {
+                'title': 'Хватит цитат.',
+                'hide': True
+            }
+        ]
+        con.commit()
+        con.close()
+    else:
+        res['response']['text'] = 'Мои цитаты можно использовать в качестве аргумента в сочинении и они платны'
+        res['response']['buttons'] = [
+            {
+                'title': 'Заработать Макар-токенов ☸.',
+                'hide': True
+            },
+            {
+                'title': 'Макарыч, я пошел, пока!',
+                'hide': True
+            }
+        ]
+        return
+
+
+def lifehak(req, res):
+    global TOKENS
+    if TOKENS >= 15:
+        con = sqlite3.connect('DB_Ded_Makar.db')
+        cur = con.cursor()
+        result = cur.execute("""SELECT lifehak FROM tablisa_so_vsem""").fetchall()
+        TOKENS -= 15
+        cur.execute(f"""UPDATE users SET tokens=? WHERE id=?""", (TOKENS, ID_USERS)).fetchall()
+        lifehakchik = result[randint(0, len(result) - 1)][0]
+        while lifehakchik == None:
+            lifehakchik = result[randint(0, len(result) - 1)][0]
+        res['response']['text'] = lifehakchik
+        res['response']['buttons'] = [
+            {
+                'title': 'Макарыч, давай еще лайфхаков',
+                'hide': True
+            },
+            {
+                'title': 'Хватит на сегодня лайфхаков',
+                'hide': True
+            }
+        ]
+        con.commit()
+        con.close()
+    else:
+        res['response']['text'] = 'Мои лайфхаки лучше чем у трум трум и стоят своих денег'
+        res['response']['buttons'] = [
+            {
+                'title': 'Заработать Макар-токенов ☸.',
+                'hide': True
+            },
+            {
+                'title': 'Макарыч, я пошел, пока!',
+                'hide': True
+            }
+        ]
+        return
+
+
+def prazdnik(req, res):
+    global TOKENS
+    if TOKENS >= 15:
+        con = sqlite3.connect('DB_Ded_Makar.db')
+        cur = con.cursor()
+        result = cur.execute("""SELECT prazdnik FROM tablisa_so_vsem""").fetchall()
+        TOKENS -= 15
+        cur.execute(f"""UPDATE users SET tokens=? WHERE id=?""", (TOKENS, ID_USERS)).fetchall()
+        prazdnichek = result[randint(0, len(result) - 1)][0]
+        while prazdnichek == None:
+            prazdnichek = result[randint(0, len(result) - 1)][0]
+        res['response']['text'] = prazdnichek
+        res['response']['buttons'] = [
+            {
+                'title': 'Макарыч, какой сегодня еще праздник?',
+                'hide': True
+            },
+            {
+                'title': 'Хватит на сегодня праздников',
+                'hide': True
+            }
+        ]
+        con.commit()
+        con.close()
+    else:
+        res['response']['text'] = 'Мои праздники интересней тех, что пишут в интернете, и они платные'
+        res['response']['buttons'] = [
+            {
+                'title': 'Заработать Макар-токенов ☸.',
+                'hide': True
+            },
+            {
+                'title': 'Макарыч, я пошел, пока!',
+                'hide': True
+            }
+        ]
+        return
+
+
 def prochanie(req, res):
     res['response']['end_session'] = True
     res['response']['text'] = 'Давай фраер, удачи тебе.'
+
+
+def knopki(req, res):
+    res['response']['text'] = f'Блатной если ты не забыл у тебя {TOKENS}☸. Трать их с умом или вали отсюда.'
+    res['response']['buttons'] = [
+        {
+            'title': 'Посоветуй фильм, Макарыч : 30☸',
+            'hide': True
+        },
+        {
+            'title': 'Дай мне совет, отче: 20☸',
+            'hide': True
+        },
+        {
+            'title': 'Хочу посмеяться: 10☸',
+            'hide': True
+        },
+        {
+            'title': 'Предскажи будущее: 15☸',
+            'hide': True
+        },
+        {
+            'title': 'Макарыч, процитируй классика: 15☸',
+            'hide': True
+        },
+        {
+            'title': 'Макарыч, поделись лайфхаком: 15☸',
+            'hide': True
+        },
+        {
+            'title': 'Макарыч, какой сегодня праздник?: 15☸',
+            'hide': True
+        },
+        {
+            'title': 'Заработать Макар-токенов ☸.',
+            'hide': True
+        },
+        {
+            'title': 'Рандомная фигня.',
+            'hide': True
+        },
+        {
+            'title': 'Макарыч, я пошел, пока!',
+            'hide': True
+        }
+    ]
 
 
 if __name__ == '__main__':
