@@ -121,7 +121,7 @@ def handle_dialog(req, res):
                 anecdot(req, res)
             elif 'Макарыч, я пошел, пока!' in req['request']['original_utterance']:
                 prochanie(req, res)
-            elif 'Заработать Макар-токенов ☸.' in req['request']['original_utterance']:
+            elif 'Заработать Макар-токенов ☸' in req['request']['original_utterance']:
                 zarabotok(req, res)
             elif 'Рандомная фигня.' in req['request']['original_utterance']:
                 randomna_figny(req, res)
@@ -511,7 +511,7 @@ def knopki(req, res):
             'hide': True
         },
         {
-            'title': 'Заработать Макар-токенов ☸.',
+            'title': 'Заработать Макар-токенов ☸',
             'hide': True
         },
         {
